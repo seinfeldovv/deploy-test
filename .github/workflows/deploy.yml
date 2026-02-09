@@ -13,7 +13,7 @@ jobs:
       # Setup key
       - run: set -eu
       - run: mkdir "$HOME/.ssh"
-      - run: echo "${{ secrets.key }}" > "$HOME/.ssh/key"
-      - run: chmod 600 "$HOME/.ssh/key"
+      - run: echo "${{ secrets.key }}" > "$HOME/.ssh/id_rsa"
+      - run: chmod 600 "$HOME/.ssh/id_rsa"
       # Deploy
-      - run: rsync -e "ssh -p 22 -i $HOME/.ssh/key -o StrictHostKeyChecking=no" --archive --compress --delete . root@103.27.157.71:/root/public_html/
+      - run: rsync -e "ssh -p 22 -i $HOME/.ssh/id_rsa -o StrictHostKeyChecking=no" --archive --compress --delete . root@103.27.157.71:/root/public_html/
