@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Мой сайт</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        h2 {
+            color: #3498db;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+        
+        p {
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        
+        ul {
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+        
+        li {
+            margin-bottom: 10px;
+        }
+        
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .feature-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .highlight {
+            background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-weight: 600;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px 15px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Добро пожаловать!</h1>
+            <p class="subtitle">Это простой и элегантный HTML-шаблон с современным дизайном и адаптивной версткой</p>
+        </header>
+        
+        <main>
+            <section class="card">
+                <h2>О данном шаблоне</h2>
+                <p>Это чистый HTML/CSS файл, который можно использовать как основу для вашего сайта. Все стили находятся прямо в этом файле, что делает его очень удобным для быстрого старта.</p>
+                <p>Шаблон включает:</p>
+                <ul>
+                    <li>Современный, чистый дизайн</li>
+                    <li>Полностью адаптивную верстку</li>
+                    <li>Плавные анимации и переходы</li>
+                    <li>Семантическую HTML-разметку</li>
+                    <li>CSS Grid и Flexbox для макетов</li>
+                </ul>
+            </section>
+            
+            <section class="card">
+                <h2>Особенности</h2>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <h3>📱 Адаптивность</h3>
+                        <p>Идеально отображается на всех устройствах: от телефонов до десктопов.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>⚡ Быстрая загрузка</h3>
+                        <p>Минимальный код и отсутствие внешних зависимостей.</p>
+                    </div>
+                    <div class="feature-item">
+                        <h3>🎨 Простота кастомизации</h3>
+                        <p>Все стили в одном файле - легко изменить под свои нужды.</p>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="card">
+                <h2>Как использовать</h2>
+                <p>Просто <span class="highlight">сохраните этот код как index.html</span> и откройте в браузере. Вы можете сразу начинать редактирование!</p>
+                <p>Чтобы добавить свою информацию, просто замените текст внутри тегов. Для изменения стилей отредактируйте CSS в секции &lt;style&gt;.</p>
+            </section>
+        </main>
+        
+        <footer>
+            <p>© 2023 Мой сайт. Все права защищены.</p>
+            <p>Создано с ❤️ с использованием чистого HTML/CSS</p>
+        </footer>
+    </div>
+</body>
+</html>
