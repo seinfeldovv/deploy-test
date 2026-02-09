@@ -3,6 +3,8 @@ name: Deploy to VPS
 on:
   push:
     branches: [main]
+  # Optional: Add workflow_dispatch for manual triggers
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -11,21 +13,53 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
+      with:
+        # Fetch all history for better version info
+        fetch-depth: 0
+        
     - name: Setup SSH
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/vps_key
         chmod 600 ~/.ssh/vps_key
         
-        # Known hosts verification (optional but recommended)
+        # Always verify host keys (security best practice)
         ssh-keyscan -H 103.27.157.71 >> ~/.ssh/known_hosts
+        
+    - name: Test SSH Connection
+      run: |
+        ssh -o BatchMode=yes -i ~/.ssh/vps_key root@103.27.157.71 "echo 'SSH connection successful'"
+        
+    - name: Backup Existing Files
+      run: |
+        TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+        ssh -i ~/.ssh/vps_key root@103.27.157.71 "cp -r /root/public_html /root/public_html_backup_$TIMESTAMP 2>/dev/null || true"
         
     - name: Deploy to VPS
       run: |
-        # Clean remote directory and copy files
-        ssh -o StrictHostKeyChecking=no -i ~/.ssh/vps_key root@103.27.157.71 "rm -rf /root/public_html/*"
-        scp -o StrictHostKeyChecking=no -r -i ~/.ssh/vps_key ./* root@103.27.157.71:/root/public_html/
+        # Create directory if it doesn't exist
+        ssh -i ~/.ssh/vps_key root@103.27.157.71 "mkdir -p /root/public_html"
         
-        # Optional: Set proper permissions on the server
-        ssh -o StrictHostKeyChecking=no -i ~/.ssh/vps_key root@103.27.157.71 "chown -R www-data:www-data /root/public_html/* || true"
+        # Clean and deploy
+        ssh -i ~/.ssh/vps_key root@103.157.71 "rm -rf /root/public_html/*"
+        scp -r -i ~/.ssh/vps_key ./* root@103.27.157.71:/root/public_html/
+        
+        # Set permissions (adjust based on your web server)
+        ssh -i ~/.ssh/vps_key root@103.27.157.71 "chown -R www-data:www-data /root/public_html/* 2>/dev/null || true"
+        
+    - name: Verify Deployment
+      run: |
+        # Check if key files exist
+        ssh -i ~/.ssh/vps_key root@103.27.157.71 "ls -la /root/public_html/ | head -10"
+        
+    - name: Notify Success
+      if: success()
+      run: |
+        echo "✅ Deployment completed successfully!"
+        echo "Website should be available at: http://103.27.157.71"
+        
+    - name: Notify Failure
+      if: failure()
+      run: |
+        echo "❌ Deployment failed!"
+        # Optionally send notification via webhook, email, etc.
