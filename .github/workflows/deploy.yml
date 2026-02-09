@@ -11,47 +11,66 @@ jobs:
     - uses: actions/checkout@v3
     
     - name: Setup SSH
+      env:
+        SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
         mkdir -p ~/.ssh
         chmod 700 ~/.ssh
         
-        # 将私钥写入文件
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/vps_key
+        echo "Debug: Checking SSH key format..."
         
-        # 确保密钥格式正确 - 检查是否包含换行符
-        if ! echo "${{ secrets.SSH_PRIVATE_KEY }}" | grep -q "PRIVATE KEY"; then
-          echo "❌ SSH key appears to be malformed"
-          exit 1
-        fi
+        # 方法1：直接写入文件
+        cat > ~/.ssh/vps_key << 'EOF'
+        ${{ secrets.SSH_PRIVATE_KEY }}
+        EOF
         
-        # 设置正确的权限
+        # 或者方法2：使用 echo（确保换行符正确）
+        echo "$SSH_KEY" > ~/.ssh/vps_key
+        
+        # 检查文件内容
+        echo "=== First 3 lines of key ==="
+        head -n 3 ~/.ssh/vps_key
+        echo "=== Last 3 lines of key ==="
+        tail -n 3 ~/.ssh/vps_key
+        
+        # 设置权限
         chmod 600 ~/.ssh/vps_key
         
         # 验证密钥格式
-        echo "Verifying SSH key format..."
-        if ssh-keygen -l -f ~/.ssh/vps_key; then
+        if ssh-keygen -l -f ~/.ssh/vps_key 2>/dev/null; then
           echo "✅ SSH key format is valid"
         else
           echo "❌ SSH key format is invalid"
-          echo "Key content (first 100 chars):"
-          head -c 100 ~/.ssh/vps_key
-          exit 1
+          echo "Trying to fix format..."
+          
+          # 尝试修复格式
+          echo "-----BEGIN OPENSSH PRIVATE KEY-----" > ~/.ssh/vps_key_fixed
+          echo "$SSH_KEY" | grep -v "PRIVATE KEY" >> ~/.ssh/vps_key_fixed
+          echo "-----END OPENSSH PRIVATE KEY-----" >> ~/.ssh/vps_key_fixed
+          
+          if ssh-keygen -l -f ~/.ssh/vps_key_fixed 2>/dev/null; then
+            echo "✅ Fixed key format is valid"
+            mv ~/.ssh/vps_key_fixed ~/.ssh/vps_key
+          else
+            exit 1
+          fi
         fi
         
-        # 添加服务器到 known_hosts
+        # 添加 known_hosts
         ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
         chmod 644 ~/.ssh/known_hosts
         
         # 测试连接
         echo "Testing SSH connection..."
-        ssh -v -o BatchMode=yes -i ~/.ssh/vps_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo 'SSH connection successful'"
+        ssh -o BatchMode=yes -i ~/.ssh/vps_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo '✅ SSH connection successful'"
     
     - name: Deploy
       if: success()
       run: |
         ssh -i ~/.ssh/vps_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "
+          echo 'Starting deployment...'
           cd /path/to/your/app
-          git pull origin main
+          pwd
+          ls -la
           # 添加你的部署命令
-          echo 'Deployment completed'
         "
