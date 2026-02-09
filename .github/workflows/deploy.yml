@@ -1,19 +1,31 @@
-name: Deploy
+name: Deploy to VPS
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v2
-      # Setup key
-      - run: set -eu
-      - run: mkdir "$HOME/.ssh"
-      - run: echo "${{ secrets.key }}" > "$HOME/.ssh/id_rsa"
-      - run: chmod 600 "$HOME/.ssh/id_rsa"
-      # Deploy
-      - run: rsync -e "ssh -p 22 -i $HOME/.ssh/id_rsa -o StrictHostKeyChecking=no" --archive --compress --delete . root@103.27.157.71:/root/public_html/
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/vps_key
+        chmod 600 ~/.ssh/vps_key
+        
+        # Known hosts verification (optional but recommended)
+        ssh-keyscan -H 103.27.157.71 >> ~/.ssh/known_hosts
+        
+    - name: Deploy to VPS
+      run: |
+        # Clean remote directory and copy files
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/vps_key root@103.27.157.71 "rm -rf /root/public_html/*"
+        scp -o StrictHostKeyChecking=no -r -i ~/.ssh/vps_key ./* root@103.27.157.71:/root/public_html/
+        
+        # Optional: Set proper permissions on the server
+        ssh -o StrictHostKeyChecking=no -i ~/.ssh/vps_key root@103.27.157.71 "chown -R www-data:www-data /root/public_html/* || true"
