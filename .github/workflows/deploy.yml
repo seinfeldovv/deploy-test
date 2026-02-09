@@ -1,4 +1,4 @@
-name: Deploy to VPS
+name: Deploy
 
 on:
   push:
@@ -13,28 +13,45 @@ jobs:
     - name: Setup SSH
       run: |
         mkdir -p ~/.ssh
-        # 将私钥写入文件，确保格式正确
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/vps_key
-        chmod 600 ~/.ssh/vps_key
+        chmod 700 ~/.ssh
         
-        # 可选：验证密钥格式
-        if ! ssh-keygen -l -f ~/.ssh/vps_key 2>/dev/null; then
-          echo "❌ SSH key format is invalid"
+        # 将私钥写入文件
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/vps_key
+        
+        # 确保密钥格式正确 - 检查是否包含换行符
+        if ! echo "${{ secrets.SSH_PRIVATE_KEY }}" | grep -q "PRIVATE KEY"; then
+          echo "❌ SSH key appears to be malformed"
           exit 1
         fi
         
-        # 添加 VPS 到 known_hosts
+        # 设置正确的权限
+        chmod 600 ~/.ssh/vps_key
+        
+        # 验证密钥格式
+        echo "Verifying SSH key format..."
+        if ssh-keygen -l -f ~/.ssh/vps_key; then
+          echo "✅ SSH key format is valid"
+        else
+          echo "❌ SSH key format is invalid"
+          echo "Key content (first 100 chars):"
+          head -c 100 ~/.ssh/vps_key
+          exit 1
+        fi
+        
+        # 添加服务器到 known_hosts
         ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+        chmod 644 ~/.ssh/known_hosts
         
         # 测试连接
-        ssh -o BatchMode=yes -i ~/.ssh/vps_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo 'SSH connection successful'"
+        echo "Testing SSH connection..."
+        ssh -v -o BatchMode=yes -i ~/.ssh/vps_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "echo 'SSH connection successful'"
     
-    - name: Deploy Application
+    - name: Deploy
+      if: success()
       run: |
         ssh -i ~/.ssh/vps_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} "
-          # 你的部署命令
           cd /path/to/your/app
           git pull origin main
-          docker-compose down
-          docker-compose up -d --build
+          # 添加你的部署命令
+          echo 'Deployment completed'
         "
